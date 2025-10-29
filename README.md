@@ -1,173 +1,169 @@
-# RAG Application 🚀
+# RAG Question Answering System
 
-A comprehensive Retrieval-Augmented Generation (RAG) system that allows users to upload documents and ask questions about their content using advanced embedding models and Large Language Models (LLMs).
+A Retrieval-Augmented Generation (RAG) system that allows users to ask questions about uploaded documents or a default knowledge base. The system uses NVIDIA's embedding and LLM APIs to retrieve relevant information and generate comprehensive answers.
 
 ## Features
 
-- **Multi-format Document Support**: Upload PDF, TXT, or DOCX files
-- **Query Expansion**: Automatically expands user queries into multiple specific sub-queries for better retrieval
-- **Vector Similarity Search**: Uses FAISS for efficient semantic search
-- **LLM-powered Synthesis**: Generates comprehensive answers using retrieved context
-- **Web Interface**: Clean Streamlit-based user interface
-- **Fallback Data**: Uses built-in data.txt if no file is uploaded
+- **Multiple File Format Support**: Upload and process PDF, TXT, or DOCX files
+- **Smart Query Expansion**: Automatically generates multiple search queries to improve retrieval accuracy
+- **Hybrid Answering Mode**: Falls back to general knowledge when document context is insufficient
+- **Document-Only Mode**: Option to restrict answers strictly to uploaded document content
+- **Vector Search**: Uses FAISS for efficient similarity search across document chunks
+- **Interactive Web UI**: Built with Streamlit for easy interaction
+- **Command-Line Interface**: Alternative CLI tool for batch processing
 
 ## Architecture
 
-The application follows a typical RAG pipeline:
+The system implements a classic RAG pipeline:
 
-1. **Document Processing**: Splits documents into chunks using RecursiveCharacterTextSplitter
-2. **Embedding Generation**: Converts text chunks to vectors using NVIDIA's embedding model
-3. **Vector Storage**: Stores embeddings in FAISS index for fast similarity search
-4. **Query Processing**: Expands user queries and retrieves relevant chunks
-5. **Answer Generation**: Uses LLM to synthesize final answers from retrieved context
+1. **Document Processing**: Splits documents into chunks using recursive character text splitting
+2. **Embedding Generation**: Converts text chunks into vector embeddings using NVIDIA's embedding model
+3. **Vector Storage**: Stores embeddings in a FAISS index for fast retrieval
+4. **Query Expansion**: Uses LLM to generate related queries for better recall
+5. **Retrieval**: Searches for the most relevant chunks based on query similarity
+6. **Answer Generation**: Synthesizes a comprehensive answer using retrieved context
 
 ## Prerequisites
 
 - Python 3.8+
-- Access to embedding API endpoint (`http://10.25.37.28:8000`)
-- Access to LLM API endpoint (`http://10.25.37.1:32003`)
+- NVIDIA API Key (get it from [NVIDIA AI Playground](https://build.nvidia.com))
 
 ## Installation
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
-cd RAG
+git clone <your-repo-url>
+cd <repo-name>
 ```
 
-2. Install required dependencies:
+2. Install dependencies:
 ```bash
 pip install -r requirements.txt
 ```
 
+3. Set up environment variables:
+Create a `.env` file in the project root:
+```env
+NVIDIA_API_KEY=your_api_key_here
+EMBED_MODEL=nvidia/llama-3.2-nv-embedqa-1b-v2
+LLM_MODEL=meta/llama-3.3-70b-instruct
+```
+
 ## Usage
 
-### Option 1: Streamlit Web Application
+### Web Interface (Streamlit)
 
-Run the web interface:
+Launch the interactive web application:
+
 ```bash
 streamlit run app.py
 ```
 
-1. Open your browser and navigate to the provided URL (typically `http://localhost:8501`)
-2. Upload a document (PDF, TXT, or DOCX) or leave blank to use the default data
-3. Enter your question in the text input field
-4. Click "Generate Answer" to get your response
+Then:
+1. Upload a document (PDF, TXT, or DOCX) or use the default `data.txt`
+2. Enter your question in the text input
+3. Optionally check "Use only the uploaded document" to restrict answers to document content
+4. Click "Generate Answer"
 
-### Option 2: Command Line Interface
+### Command-Line Interface
 
-For offline processing and querying:
+For pre-indexed documents:
 
-1. **Prepare embeddings** (run once):
+1. First, create embeddings from your document:
 ```bash
 python embed_chunks.py
 ```
 
-2. **Ask questions**:
+This generates `faiss_index.bin` and `text_chunks.pkl` files.
+
+2. Then run queries:
 ```bash
 python rag_ans.py
 ```
 
-## File Structure
+Enter your question when prompted.
+
+### Processing Custom Documents
+
+To process a different document with the CLI:
+
+1. Update the file path in `load_chunk.py` (line 14)
+2. Run `embed_chunks.py` to generate new embeddings
+3. Use `rag_ans.py` to ask questions
+
+## Project Structure
 
 ```
-rag-application/
-├── app.py                 # Main Streamlit application
-├── rag_ans.py            # Command-line RAG interface
+.
+├── app.py                 # Streamlit web application
+├── rag_ans.py            # Command-line interface
 ├── embed_chunks.py       # Embedding generation script
-├── load_chunk.py         # Document loading and chunking utility
-├── data.txt              # Default RAG knowledge base
+├── load_chunk.py         # Document loading and chunking utilities
+├── data.txt              # Default knowledge base
 ├── requirements.txt      # Python dependencies
-├── faiss_index.bin       # Generated FAISS index (after running embed_chunks.py)
-└── text_chunks.pkl       # Serialized text chunks (after running embed_chunks.py)
+├── .env                  # Environment variables (create this)
+├── .gitignore           # Git ignore rules
+├── faiss_index.bin      # Generated FAISS index (ignored in git)
+└── text_chunks.pkl      # Generated chunks (ignored in git)
 ```
-
-## API Dependencies
-
-### Embedding API
-- **Endpoint**: `http://10.25.37.28:8000/v1/embeddings`
-- **Model**: `nvidia/llama-3.2-nv-embedqa-1b-v2`
-- **Purpose**: Converts text to numerical vectors
-
-### LLM API
-- **Endpoint**: `http://10.25.37.1:32003/v1/chat/completions`
-- **Model**: `meta/llama-3.1-70b-instruct`
-- **Purpose**: Query expansion and answer synthesis
-
-## Configuration
-
-### Chunking Parameters
-- **Chunk Size**: 500 characters
-- **Chunk Overlap**: 50 characters
-- **Splitter**: RecursiveCharacterTextSplitter
 
 ### Retrieval Parameters
-- **Top-K per Query**: 2 chunks
-- **Query Expansion**: 3-5 expanded queries per user question
-- **Vector Search**: L2 distance using FAISS
 
-### LLM Parameters
-- **Max Tokens**: 4096 (synthesis), 200 (expansion)
-- **Temperature**: 0.3 (synthesis), 0.2 (expansion)
-- **Top-P**: 0.9
-
-## Supported File Formats
-
-| Format | Extension | Library Used |
-|--------|-----------|--------------|
-| PDF | `.pdf` | PyPDF2 |
-| Text | `.txt` | Built-in Python |
-| Word Document | `.docx` | python-docx |
-
-## Error Handling
-
-The application includes comprehensive error handling for:
-- API connection failures
-- File reading errors  
-- Embedding generation failures
-- Invalid file formats
-- Network timeouts
-
-## Development
-
-### Adding New File Formats
-
-To support additional file formats, extend the file reading functions in `app.py`:
-
+Modify the number of chunks retrieved per query in `app.py` or `rag_ans.py`:
 ```python
-def read_new_format(file):
-    # Your implementation here
-    return extracted_text
+index.search(query_emb, k=2)  # Change k to retrieve more/fewer chunks
 ```
 
-### Customizing Chunk Size
+### Model Selection
 
-Modify the splitter parameters in the respective files:
-
-```python
-splitter = RecursiveCharacterTextSplitter(
-    chunk_size=YOUR_SIZE,
-    chunk_overlap=YOUR_OVERLAP
-)
+Change models in your `.env` file:
+```env
+EMBED_MODEL=nvidia/llama-3.2-nv-embedqa-1b-v2
+LLM_MODEL=meta/llama-3.3-70b-instruct
 ```
+
+## How It Works
+
+### Query Expansion
+The system uses an LLM to generate 3-5 related questions for each user query, improving retrieval coverage:
+- Original: "What is RAG?"
+- Expanded: "What does RAG stand for?", "How does RAG work?", "What are the components of RAG?"
+
+### Fallback Mechanism
+When the document doesn't contain relevant information:
+- **Default mode**: Falls back to general LLM knowledge
+- **Document-only mode**: Informs user that the answer isn't in the document
+
+### Refusal Detection
+The system detects when the LLM indicates it cannot answer from context and automatically triggers fallback behavior.
+
+## API Rate Limits
+
+Be aware of NVIDIA API rate limits. The system includes:
+- Timeout configurations (20-60 seconds)
+- Error handling with detailed messages
+- Sequential processing to avoid overwhelming the API
 
 ## Troubleshooting
 
-### Common Issues
+### "Embedding API error"
+- Check your NVIDIA API key is valid
+- Ensure you have API credits remaining
+- Verify your internet connection
 
-1. **API Connection Errors**: Verify that the embedding and LLM API endpoints are accessible
-2. **File Upload Failures**: Ensure uploaded files aren't corrupted and are in supported formats
-3. **Memory Issues**: For large documents, consider reducing chunk size or processing in batches
-4. **Slow Performance**: Check network connectivity to API endpoints
+### "faiss_index.bin not found"
+- Run `embed_chunks.py` first to generate the index
+- Ensure the file is in the same directory
 
-### Debug Mode
-
-For additional debugging information, monitor the Streamlit console output and API response logs.
-
+### Poor Answer Quality
+- Try adjusting chunk size/overlap
+- Increase the number of retrieved chunks (k parameter)
+- Use query expansion (enabled by default)
+- Upload a more comprehensive document
+- 
 ## Acknowledgments
 
-- NVIDIA for the embedding models
-- Meta for the Llama language models
-- Streamlit for the web framework
-- FAISS for efficient vector search
-- LangChain for document processing utilities
+- Built with [LangChain](https://www.langchain.com/)
+- Vector search powered by [FAISS](https://github.com/facebookresearch/faiss)
+- Embeddings and LLM inference via [NVIDIA AI Endpoints](https://build.nvidia.com)
+- UI built with [Streamlit](https://streamlit.io/)
