@@ -1,4 +1,4 @@
-# RAG Question Answering System
+# RAG 
 
 A Retrieval-Augmented Generation (RAG) system that allows users to ask questions about uploaded documents or a default knowledge base. The system uses NVIDIA's embedding and LLM APIs to retrieve relevant information and generate comprehensive answers.
 
