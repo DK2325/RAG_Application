@@ -32,8 +32,8 @@ The system implements a classic RAG pipeline:
 
 1. Clone the repository:
 ```bash
-git clone <your-repo-url>
-cd <repo-name>
+git clone https://github.com/DK2325/RAG_Application
+cd RAG_Application
 ```
 
 2. Install dependencies:
