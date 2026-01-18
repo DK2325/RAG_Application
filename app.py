@@ -19,7 +19,6 @@ except Exception:
 EMBED_MODEL = os.getenv("EMBED_MODEL", "nvidia/llama-3.2-nv-embedqa-1b-v2")
 LLM_MODEL = os.getenv("LLM_MODEL", "meta/llama-3.3-70b-instruct")
 
-# ---------------- FILE READERS ---------------- #
 
 def read_pdf(file):
     reader = PdfReader(file)
@@ -35,7 +34,6 @@ def read_docx(file):
 def read_data_txt():
     return "RAG stands for Retrieval-Augmented Generation..."
 
-# ---------------- TASK DETECTION ---------------- #
 
 def is_task_question(question: str) -> bool:
     q = question.lower().strip()
@@ -47,7 +45,6 @@ def is_task_question(question: str) -> bool:
     ]
     return any(v in q for v in task_verbs)
 
-# ---------------- EMBEDDINGS ---------------- #
 
 def embed_chunks(chunks):
     url = "https://integrate.api.nvidia.com/v1/embeddings"
@@ -71,7 +68,6 @@ def get_query_embedding(question):
     response.raise_for_status()
     return response.json()["data"][0]["embedding"]
 
-# ---------------- LLM CALLS ---------------- #
 
 def run_task_on_document(document_text, task):
     url = "https://integrate.api.nvidia.com/v1/chat/completions"
@@ -135,9 +131,8 @@ Question:
     response.raise_for_status()
     return response.json()["choices"][0]["message"]["content"]
 
-# ---------------- STREAMLIT UI ---------------- #
 
-st.title("Task-Aware RAG System")
+st.title("RAG")
 
 uploaded_file = st.file_uploader(
     "Upload PDF / TXT / DOCX (optional)",
@@ -160,7 +155,6 @@ if st.button("Generate Answer") and question.strip():
         else:
             document_text = read_data_txt()
 
-    # 🔥 TASK MODE (NO RETRIEVAL)
     if is_task_question(question):
         with st.spinner("Performing task on document..."):
             result = run_task_on_document(document_text, question)
@@ -168,7 +162,6 @@ if st.button("Generate Answer") and question.strip():
             st.write(result)
         st.stop()
 
-    # -------- FACT MODE (RAG) -------- #
 
     splitter = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
     docs = splitter.split_documents([LCDocument(page_content=document_text)])
